@@ -36,9 +36,9 @@
           <div class="seccion-badge">{{ seccion.rooms.length }} {{ seccion.rooms.length === 1 ? 'habitación' : 'habitaciones' }}</div>
         </div>
         <div :class="['rooms-grid', compactMode ? 'compact' : '']">
-          <div v-for="(room, roomIndex) in seccion.rooms" :key="room.id" :class="['room-card', room.estado]" @click="abrirModal(room)">
-            <div class="room-id">{{ room.room_id }}</div>
+          <div v-for="(room, roomIndex) in seccion.rooms" :key="room.id" :class="['room-card', room.estado, { 'room-card-next': nextRoomId === room.id, 'room-card-flash': flashingRoomId === room.id }]" @click="abrirModal(room)">
             <div class="room-nombre">{{ room.name }}</div>
+            <div v-if="nextRoomId === room.id" class="room-next-badge">→ Siguiente</div>
             <div :class="['room-estado', room.estado]">
               {{ estadoIcono(room.estado) }} {{ estadoLabel(room.estado) }}
             </div>
@@ -95,12 +95,16 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         Reabrir Ronda
       </button>
+      <button class="btn" @click="exportarExcel" style="min-width: 220px; justify-content: center; display: inline-flex; align-items: center; gap: 0.4rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Exportar Excel
+      </button>
     </div>
 
     <div :class="['modal-overlay', modalOpen ? 'open' : '']" @click.self="cerrarModal">
       <div class="modal">
         <h3>{{ modalRoom?.name }}</h3>
-        <div class="sub">{{ modalRoom?.section }} — {{ modalRoom?.room_id }}</div>
+        <div class="sub">{{ modalRoom?.section }}</div>
         <div class="estado-grid">
           <div v-for="estado in estadosPosibles" 
             :key="estado"
@@ -110,7 +114,7 @@
           </div>
         </div>
         <div class="obs-label">Observaciones (opcional)</div>
-        <input class="obs-input" v-model="observacionModal" type="text" placeholder="Ej: Cable roto, en espera de repuesto...">
+        <input class="obs-input" v-model="observacionModal" type="text" placeholder="Ej: Cable roto, en espera de repuesto..." @keydown.ctrl.enter="guardarCambio" @keydown.meta.enter="guardarCambio">
         <div class="modal-actions">
           <button class="btn" @click="cerrarModal">Cancelar</button>
           <button class="btn btn-primary" @click="guardarCambio" :disabled="loading">
@@ -128,6 +132,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useStore } from '../store'
 import { api } from '../api'
 import { refreshHistorial, refreshHistorialDebounced } from '../utils.js'
+import * as XLSX from 'xlsx'
 
 const props = defineProps({
   filtroPiso: { type: String, default: 'all' },
@@ -160,8 +165,11 @@ const modalRoom = ref(null)
 const estadoSeleccionado = ref('funciona')
 const observacionModal = ref('')
 const loading = ref(false)
+const flashingRoomId = ref(null)
 
 const estadosPosibles = ['funciona', 'no-funciona', 'aislado', 'no-hay']
+
+const ordenSecciones = ['Piso 9', 'Piso 8', 'Piso 7', 'Piso 6', 'Piso 5', 'Piso 2', 'Piso 1']
 
 const getEstructura = (filtroPisoOverride) => {
   const piso = filtroPisoOverride || props.filtroPiso
@@ -174,11 +182,17 @@ const getEstructura = (filtroPisoOverride) => {
     }
     seccionesMap[room.section].rooms.push(room)
   })
-  return Object.values(seccionesMap).filter(seccion => 
-    props.subtabActivo === 'llamados' 
-      ? !seccion.nombre.includes('Baños') 
-      : seccion.nombre.includes('Baños')
-  )
+  return Object.values(seccionesMap)
+    .filter(seccion => 
+      props.subtabActivo === 'llamados' 
+        ? !seccion.nombre.includes('Baños') 
+        : seccion.nombre.includes('Baños')
+    )
+    .sort((a, b) => {
+      const ai = ordenSecciones.findIndex(o => a.nombre.startsWith(o))
+      const bi = ordenSecciones.findIndex(o => b.nombre.startsWith(o))
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+    })
 }
 
 const stats = computed(() => {
@@ -213,6 +227,16 @@ const seccionesFiltradas = computed(() => {
       return estadoMatch && busquedaMatch
     })
   })).filter(s => s.rooms.length > 0)
+})
+
+const nextRoomId = computed(() => {
+  const allRooms = seccionesFiltradas.value.flatMap(s => s.rooms)
+  for (const room of allRooms) {
+    if (!room.timestamp && room.id !== modalRoom.value?.id) {
+      return room.id
+    }
+  }
+  return null
 })
 
 const estadoLabel = (estado) => {
@@ -295,19 +319,32 @@ const cerrarModal = () => {
   observacionModal.value = ''
 }
 
+const avanzarSiguiente = (savedRoomId) => {
+  const allRooms = seccionesFiltradas.value.flatMap(s => s.rooms)
+  const currentIndex = allRooms.findIndex(r => r.id === savedRoomId)
+  for (let i = currentIndex + 1; i < allRooms.length; i++) {
+    if (!allRooms[i].timestamp) {
+      abrirModal(allRooms[i])
+      return
+    }
+  }
+}
+
 const guardarCambio = async () => {
   if (!modalRoom.value || !ronda.value) return
   loading.value = true
+  const savedRoomId = modalRoom.value.id
+  const savedEstado = estadoSeleccionado.value
   try {
-    await api.updateRoomState(ronda.value.id, modalRoom.value.id, { 
-      estado: estadoSeleccionado.value, 
+    await api.updateRoomState(ronda.value.id, savedRoomId, { 
+      estado: savedEstado, 
       observacion: observacionModal.value 
     })
-    const roomIndex = rooms.value.findIndex(r => r.id === modalRoom.value.id)
+    const roomIndex = rooms.value.findIndex(r => r.id === savedRoomId)
     if (roomIndex !== -1) {
       store.state.rooms[roomIndex] = {
         ...rooms.value[roomIndex],
-        estado: estadoSeleccionado.value,
+        estado: savedEstado,
         observacion: observacionModal.value,
         timestamp: new Date().toISOString()
       }
@@ -315,6 +352,13 @@ const guardarCambio = async () => {
     cerrarModal()
     refreshHistorialDebounced()
     store.showToast('Cambio guardado correctamente', 'success')
+
+    if (savedEstado === 'funciona') {
+      flashingRoomId.value = savedRoomId
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 600))
+      flashingRoomId.value = null
+    }
   } catch (err) {
     store.showToast('Error al guardar cambio', 'error')
   } finally {
@@ -331,6 +375,26 @@ const finalizarRonda = async () => {
   } catch (err) {
     store.showToast('Error al finalizar ronda', 'error')
   }
+}
+
+const exportarExcel = () => {
+  const todas = getEstructura().flatMap(s => s.rooms)
+  const datos = todas.map(r => [
+    r.section,
+    r.name,
+    r.room_id,
+    r.type === 'baños' ? 'Baños' : 'Llamados',
+    estadoLabel(r.estado),
+    r.observacion || '',
+    r.timestamp ? formatTime(r.timestamp) : ''
+  ])
+  datos.unshift(['Sección', 'Habitación', 'ID', 'Tipo', 'Estado', 'Observación', 'Hora'])
+  const ws = XLSX.utils.aoa_to_sheet(datos)
+  ws['!cols'] = [{ wch: 34 }, { wch: 22 }, { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 30 }, { wch: 10 }]
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Ronda')
+  const fecha = new Date().toISOString().split('T')[0]
+  XLSX.writeFile(wb, `Ronda_${fecha}.xlsx`)
 }
 
 const reabrirRonda = async () => {

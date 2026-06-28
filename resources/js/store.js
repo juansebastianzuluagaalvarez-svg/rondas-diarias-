@@ -3,6 +3,7 @@ import { reactive, computed } from 'vue'
 const state = reactive({
   user: null,
   token: localStorage.getItem('token'),
+  sede: localStorage.getItem('sede') || 'torre',
   ronda: null,
   rooms: [],
   historial: [],
@@ -17,6 +18,10 @@ export const useStore = () => {
     state.token = token 
     if (token) localStorage.setItem('token', token)
     else localStorage.removeItem('token')
+  }
+  const setSede = (sede) => {
+    state.sede = sede
+    localStorage.setItem('sede', sede)
   }
   const setRonda = (ronda) => { state.ronda = ronda }
   const setRooms = (rooms) => { state.rooms = rooms }
@@ -34,6 +39,7 @@ export const useStore = () => {
     state,
     setUser,
     setToken,
+    setSede,
     setRonda,
     setRooms,
     setHistorial,

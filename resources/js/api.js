@@ -37,9 +37,22 @@ export const api = {
   }),
   logout: () => request('/logout', { method: 'POST' }),
   getUser: () => request('/user'),
+  getUsers: () => request('/users'),
+  createUser: (data) => request('/users', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateUser: (id, data) => request(`/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
 
   // Rondas
-  getTodayRonda: () => request('/rondas/today'),
+  getTodayRonda: () => {
+    const store = useStore()
+    return request(`/rondas/today?sede=${store.state.sede}`)
+  },
   updateRoomState: (rondaId, roomId, data) => request(`/rondas/${rondaId}/rooms/${roomId}/state`, {
     method: 'POST',
     body: JSON.stringify(data)
@@ -49,7 +62,8 @@ export const api = {
 
   // Historial
   getHistorial: (filters = {}) => {
-    const params = new URLSearchParams(filters)
+    const store = useStore()
+    const params = new URLSearchParams({ ...filters, sede: store.state.sede })
     return request(`/historial?${params}`)
   },
   updateHistorial: (id, data) => request(`/historial/${id}`, {
@@ -81,5 +95,17 @@ export const api = {
     a.click()
     window.URL.revokeObjectURL(url)
     a.remove()
-  }
+  },
+
+  // Rooms
+  getRooms: () => request('/rooms'),
+  createRoom: (data) => request('/rooms', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateRoom: (id, data) => request(`/rooms/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  deleteRoom: (id) => request(`/rooms/${id}`, { method: 'DELETE' }),
 }

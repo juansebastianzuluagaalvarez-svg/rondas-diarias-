@@ -372,106 +372,16 @@ form {
   background: linear-gradient(135deg, var(--azul-oscuro), var(--azul), var(--azul-claro), #1E5AA8, var(--azul-oscuro));
   background-size: 400% 400%;
   animation: gradientShift 12s ease infinite;
-  padding: 0.7rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
   color: #fff;
   box-shadow: 0 2px 20px rgba(13, 45, 107, 0.2);
-}
-
-.header .btn {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(4px);
-}
-
-.header .btn:hover {
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-}
-
-.header .fecha-badge {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  font-family: var(--mono);
-  backdrop-filter: blur(4px);
-}
-
-.header .db-status span {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.logo-img {
-  height: 38px;
-  width: auto;
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-}
-
-.logo-text h1 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.2px;
-}
-
-.logo-text p {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin-top: 0.05rem;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.fecha-badge {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-sm);
-  padding: 0.35rem 0.75rem;
-  font-size: 0.78rem;
-  font-family: var(--mono);
-  white-space: nowrap;
-}
-
-.db-status {
-  display: none;
-}
-
-.db-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--gris);
-  position: relative;
-}
-
-.db-dot.conectado {
-  background: var(--verde);
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
-}
-
-.db-dot.error {
-  background: var(--rojo);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 /* ============================================
@@ -1328,8 +1238,8 @@ form {
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 6px;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
   background: #1e293b;
   color: #fff;
   font-size: 0.65rem;
@@ -1338,7 +1248,9 @@ form {
   font-family: var(--font);
   pointer-events: none;
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.25), 0 4px 16px rgba(0,0,0,0.25);
+  border-left: 3px solid #818cf8;
+  animation: tipIn 0.18s ease-out;
 }
 
 .bano-dot[data-tip]:hover::before {
@@ -1464,6 +1376,37 @@ form {
   margin-top: 0;
   padding: 0.1rem 0.2rem;
   border-radius: 6px;
+}
+
+.room-card-next {
+  border-color: var(--azul) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15), var(--shadow-sm);
+}
+
+.room-next-badge {
+  font-size: 0.6rem;
+  color: var(--azul);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  animation: room-next-pulse 2s ease-in-out infinite;
+  margin: 0.15rem 0 0.1rem;
+}
+
+@keyframes room-next-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.room-card-flash {
+  animation: room-flash-green 0.6s ease;
+}
+
+@keyframes room-flash-green {
+  0% { background: color-mix(in srgb, var(--verde) 5%, var(--surface)); border-color: color-mix(in srgb, var(--verde) 15%, var(--border)); }
+  50% { background: rgba(34, 197, 94, 0.35); border-color: var(--verde); box-shadow: 0 0 24px rgba(34, 197, 94, 0.35); }
+  100% { background: color-mix(in srgb, var(--verde) 5%, var(--surface)); border-color: color-mix(in srgb, var(--verde) 15%, var(--border)); }
 }
 
 .rooms-grid.compact .bano-row {
@@ -2132,3 +2075,4 @@ form {
   .login-header { padding: 1.5rem 1.25rem 1.25rem; }
   .login-body { padding: 1.5rem 1.25rem 1.25rem; }
 }
+@keyframes tipIn { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }

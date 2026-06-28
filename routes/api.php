@@ -11,10 +11,17 @@ Route::post('login', [LoginController::class, 'login'])->middleware('throttle:5,
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [LoginController::class, 'user']);
+    Route::get('/users', [LoginController::class, 'index']);
+    Route::post('/users', [LoginController::class, 'store']);
+    Route::put('/users/{user}', [LoginController::class, 'update']);
+    Route::delete('/users/{user}', [LoginController::class, 'destroy']);
     Route::post('/logout', [LoginController::class, 'logout']);
 
     Route::get('/rooms', [RoomController::class, 'index']);
     Route::get('/rooms/{room}', [RoomController::class, 'show']);
+    Route::post('/rooms', [RoomController::class, 'store']);
+    Route::put('/rooms/{room}', [RoomController::class, 'update']);
+    Route::delete('/rooms/{room}', [RoomController::class, 'destroy']);
 
     Route::get('/rondas/today', [RondaController::class, 'getOrCreateToday']);
     Route::post('/rondas/{ronda}/rooms/{room}/state', [RondaController::class, 'updateRoomState']);

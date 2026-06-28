@@ -19,6 +19,7 @@ class Historial extends Model
         'room_id',
         'room_name',
         'section',
+        'sede',
         'anterior',
         'nuevo',
         'observacion',
@@ -44,6 +45,17 @@ class Historial extends Model
     {
         if ($request->filled('date')) {
             $query->where('date', $request->date);
+        } else {
+            if ($request->filled('date_from')) {
+                $query->where('date', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->where('date', '<=', $request->date_to);
+            }
+        }
+
+        if ($request->filled('sede')) {
+            $query->where('sede', $request->sede);
         }
 
         if ($request->filled('section')) {

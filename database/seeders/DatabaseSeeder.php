@@ -15,12 +15,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('clinica2024'),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'Admin', 'role' => 'admin', 'password' => bcrypt('clinica2024')]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'soporte.tecnicotics2@cacsantabarbara.co'],
+            ['name' => 'Jorge Andres Mosquera', 'role' => 'user', 'password' => bcrypt('123456*')]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'soporte.tecnicotics1@cacsantabarbara.co'],
+            ['name' => 'Andres Fernando', 'role' => 'user', 'password' => bcrypt('123456*')]
+        );
 
         // Seed rooms
         $this->call(RoomSeeder::class);

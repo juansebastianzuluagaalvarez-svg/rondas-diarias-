@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class RondaController extends Controller
 {
-    public function getOrCreateToday()
+    public function getOrCreateToday(Request $request)
     {
         $today = Carbon::now()->hour < 7 ? Carbon::yesterday() : Carbon::today();
         $ronda = Ronda::firstOrCreate(
@@ -27,7 +27,22 @@ class RondaController extends Controller
 
         $roomStatesKeyed = $ronda->roomStates->keyBy('room_id');
 
-        $rooms = Room::all()->map(function ($room) use ($ronda, $roomStatesKeyed, $defaultStates, $defaultObservations) {
+        $sede = $request->query('sede', 'torre');
+
+        $rooms = Room::where('sede', $sede)->orderByRaw("FIELD(section,
+            'Piso 9 - Angiografía - Llamados', 'Piso 9 - Angiografía - Baños',
+            'Piso 9 - Cardiología - Llamados', 'Piso 9 - Cardiología - Baños',
+            'Piso 8 - Hospitalización - Llamados', 'Piso 8 - Hospitalización - Baños',
+            'Piso 8 - Admisiones - Llamados', 'Piso 8 - Admisiones - Baños',
+            'Piso 7 - Hospitalización - Llamados', 'Piso 7 - Hospitalización - Baños',
+            'Piso 7 - Admisiones - Llamados', 'Piso 7 - Admisiones - Baños',
+            'Piso 6 - Cirugía - Llamados', 'Piso 6 - Cirugía - Baños',
+            'Piso 5 - UCI - Llamados', 'Piso 5 - UCI - Baños',
+            'Piso 5 - UCIN - Llamados', 'Piso 5 - UCIN - Baños',
+            'Piso 5 - Admisiones - Llamados', 'Piso 5 - Admisiones - Baños',
+            'Piso 2 - Hospital Día - Llamados', 'Piso 2 - Hospital Día - Baños',
+            'Piso 1 - Imágenes - Llamados', 'Piso 1 - Imágenes - Baños'
+        )")->get()->map(function ($room) use ($ronda, $roomStatesKeyed, $defaultStates, $defaultObservations) {
             $roomState = $roomStatesKeyed->get($room->id);
             $estado = $roomState ? $roomState->estado : ($defaultStates[$room->room_id] ?? 'funciona');
             $observacion = $roomState ? $roomState->observacion : ($defaultObservations[$room->room_id] ?? null);
@@ -77,6 +92,7 @@ class RondaController extends Controller
                 'room_id' => $room->id,
                 'room_name' => $room->name,
                 'section' => $room->section,
+                'sede' => $room->sede,
                 'anterior' => $anterior,
                 'nuevo' => $request->estado,
                 'observacion' => $request->observacion,

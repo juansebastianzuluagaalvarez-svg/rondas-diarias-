@@ -14,6 +14,7 @@ class Room extends Model
         'room_id',
         'name',
         'section',
+        'sede',
         'type',
     ];
 

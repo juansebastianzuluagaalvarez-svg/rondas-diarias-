@@ -16,7 +16,10 @@
                   <span v-if="fecha === hoy" class="chip chip-hoy">HOY</span>
                 </div>
                 <div class="carpeta-meta">
-                  <span v-for="(count, estado) in resumenPorEstado(grupo)" :key="estado" :class="['chip', estado]" style="margin-right:0.25rem;">{{ count }} {{ estadoLabel(estado) }}</span>
+                  <span v-for="(count, estado) in resumenPorEstado(grupo)" :key="estado" :class="['chip', estado]" style="margin-right:0.25rem;">
+                    <span class="chip-count">{{ count }}</span>
+                    {{ estadoLabel(estado) }}
+                  </span>
                 </div>
               </div>
               <div class="carpeta-badge">{{ grupo.length }}</div>
@@ -46,17 +49,23 @@
                 <tbody>
                   <tr v-for="item in grupo" :key="item.id">
                     <td class="td-mono">{{ formatTime(item.ts) }}</td>
-                    <td>{{ item.section }}</td>
+                    <td><span class="section-link" @click="filtrarPorSeccion(item.section)">{{ item.section }}</span></td>
                     <td>
                       {{ item.room_name }}
-                      <div class="td-mono" style="font-size:0.68rem;color:var(--text2);">{{ item.room?.room_id }}</div>
                     </td>
                     <td>
                       <span :class="['chip', item.anterior]" style="margin-right:0.25rem;">{{ estadoLabel(item.anterior) }}</span>
                       <span style="color:var(--text2);margin:0 0.2rem;">→</span>
                       <span :class="['chip', item.nuevo]">{{ estadoLabel(item.nuevo) }}</span>
                     </td>
-                    <td style="color:var(--text2);">{{ item.observacion || '—' }}</td>
+                    <td>
+                      <div v-if="editingObsId !== item.id" class="obs-display" @dblclick="startEditObs(item)">{{ item.observacion || '—' }}</div>
+                      <div v-else class="obs-edit-wrap">
+                        <input ref="obsInputRef" v-model="obsEditVal" class="obs-edit-input" type="text" @keydown.enter.prevent="saveObs(item)" @keydown.escape="cancelEditObs" @blur="saveObs(item)">
+                        <span v-if="obsSaving" class="spinner" style="width:12px;height:12px;border-width:2px;flex-shrink:0;"></span>
+                      </div>
+                      <span v-if="obsSavedId === item.id" class="obs-check">✓</span>
+                    </td>
                     <td style="white-space:nowrap;">
                       <button class="btn-edit" @click="editarItem(item)">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -115,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useStore } from '../store'
 import { api } from '../api'
 import * as XLSX from 'xlsx'
@@ -127,6 +136,8 @@ const props = defineProps({
   filtroBusqueda: { type: String, default: '' },
   soloBaños: { type: Boolean, default: false }
 })
+
+const emit = defineEmits(['update:filtroPiso'])
 
 const store = useStore()
 
@@ -141,6 +152,12 @@ const itemAEliminar = ref(null)
 const estadoSeleccionado = ref('funciona')
 const observacionEditar = ref('')
 const loading = ref(false)
+
+const editingObsId = ref(null)
+const obsEditVal = ref('')
+const obsSaving = ref(false)
+const obsSavedId = ref(null)
+const obsInputRef = ref(null)
 
 const estadosPosibles = ['funciona', 'no-funciona', 'aislado', 'no-hay']
 const hoy = computed(() => {
@@ -244,7 +261,7 @@ const cerrarModalEditar = () => {
 }
 
 const guardarEdicion = async () => {
-  if (!itemEditar.value) return
+  if (!itemEditar.value || loading.value) return
   loading.value = true
   try {
     await api.updateHistorial(itemEditar.value.id, { 
@@ -328,6 +345,44 @@ const exportarPDF = async (fecha) => {
   }
 }
 
+const filtrarPorSeccion = (section) => {
+  const match = section.match(/^(Piso \d+)/)
+  if (match) {
+    emit('update:filtroPiso', match[1])
+  }
+}
+
+const startEditObs = async (item) => {
+  editingObsId.value = item.id
+  obsEditVal.value = item.observacion || ''
+  await nextTick()
+  if (obsInputRef.value) obsInputRef.value.focus()
+}
+
+const saveObs = async (item) => {
+  if (editingObsId.value !== item.id || obsSaving.value) return
+  obsSaving.value = true
+  try {
+    await api.updateHistorial(item.id, { 
+      nuevo: item.nuevo, 
+      observacion: obsEditVal.value 
+    })
+    editingObsId.value = null
+    obsSavedId.value = item.id
+    setTimeout(() => { obsSavedId.value = null }, 2000)
+    await refreshHistorial()
+    store.showToast('Observación guardada', 'success')
+  } catch (err) {
+    store.showToast('Error al guardar observación', 'error')
+  } finally {
+    obsSaving.value = false
+  }
+}
+
+const cancelEditObs = () => {
+  editingObsId.value = null
+}
+
 // Open today's folder by default
 if (fechasUnicas.value.includes(hoy.value) && !carpetasAbiertas.value.includes(hoy.value)) {
   carpetasAbiertas.value.push(hoy.value)
@@ -353,5 +408,69 @@ if (fechasUnicas.value.includes(hoy.value) && !carpetasAbiertas.value.includes(h
 .btn-del svg,
 .btn-edit svg {
   display: block;
+}
+
+.section-link {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.section-link:hover {
+  color: var(--azul);
+}
+
+.obs-display {
+  cursor: pointer;
+  min-height: 1.3em;
+  transition: background 0.15s;
+  border-radius: 3px;
+  padding: 0.1rem 0.2rem;
+  margin: -0.1rem -0.2rem;
+}
+
+.obs-display:hover {
+  background: #f1f5f9;
+}
+
+.obs-edit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.obs-edit-input {
+  width: 100%;
+  min-width: 120px;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--azul);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+.obs-check {
+  color: #15803d;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-left: 0.15rem;
+  vertical-align: middle;
+}
+
+.chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0 3px;
+  margin-right: 2px;
+  line-height: 1;
 }
 </style>
