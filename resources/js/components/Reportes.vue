@@ -300,10 +300,12 @@ const descargarPDF = async () => {
   gap: 12px;
   flex-wrap: wrap;
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #e2e8f0;
+  border-top: 3px solid #0D2D6B;
   border-radius: 14px;
   padding: 14px 18px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(13,45,107,0.06);
   animation: f 0.4s 0.05s ease backwards;
 }
 .rep-f-group {
@@ -541,6 +543,23 @@ const descargarPDF = async () => {
 @keyframes f {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .rep-wrap { padding: 12px 14px; }
+  .rep-filters { padding: 12px 14px; margin-bottom: 12px; gap: 8px; }
+  .rep-filters { display: grid; grid-template-columns: 1fr 1fr; }
+  .rep-f-group { flex: unset; }
+  .rep-input { min-width: unset; }
+  .rep-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rep-t-header, .rep-t-row { padding: 7px 12px; }
+}
+@media (max-width: 480px) {
+  .rep-wrap { padding: 10px; }
+  .rep-hero-title { font-size: 1rem; }
+  .rep-hero-desc { font-size: 0.7rem; }
+  .rep-hero { margin-bottom: 10px; }
+  .rep-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media print {

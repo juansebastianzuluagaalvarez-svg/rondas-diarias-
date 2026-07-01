@@ -134,6 +134,39 @@
     </div>
 
     <div v-if="vista === 'general' && !habitacionSeleccionada" class="summary-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-azul">
+          <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <div class="kpi-number">{{ distribucionGeneral.total }}</div>
+          <div class="kpi-label">Total habitaciones</div>
+        </div>
+        <div class="kpi-card kpi-verde">
+          <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="kpi-number">{{ distribucionGeneral.funciona }}</div>
+          <div class="kpi-label">Funcionan</div>
+          <div class="kpi-sub">{{ distribucionGeneral.total ? Math.round(distribucionGeneral.funciona / distribucionGeneral.total * 100) : 0 }}% del total</div>
+        </div>
+        <div class="kpi-card kpi-rojo">
+          <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </div>
+          <div class="kpi-number">{{ distribucionGeneral['no-funciona'] }}</div>
+          <div class="kpi-label">No funcionan</div>
+          <div class="kpi-sub">{{ distribucionGeneral.total ? Math.round(distribucionGeneral['no-funciona'] / distribucionGeneral.total * 100) : 0 }}% del total</div>
+        </div>
+        <div class="kpi-card kpi-ambar">
+          <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="kpi-number">{{ distribucionGeneral.aislado }}</div>
+          <div class="kpi-label">Aislados</div>
+          <div class="kpi-sub">{{ distribucionGeneral.total ? Math.round(distribucionGeneral.aislado / distribucionGeneral.total * 100) : 0 }}% del total</div>
+        </div>
+      </div>
       <div class="dashboard-grid">
         <div class="dashboard-card">
           <div class="dashboard-card-title">
@@ -2457,5 +2490,107 @@ const estadoLabel = (estado) => {
 .alert-body strong { display: block; font-size: 12px; font-weight: 700; color: #0f172a; }
 @keyframes tipPop { from { opacity: 0; transform: translateX(-50%) scale(0.92); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
 .alert-body span { font-size: 10px; color: #64748b; }
+
+/* ===== KPI CARDS ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  color: #fff;
+  overflow: hidden;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.18); }
+.kpi-azul  { background: linear-gradient(135deg,#0D2D6B 0%,#1e4da0 100%); }
+.kpi-verde { background: linear-gradient(135deg,#15803d 0%,#22c55e 100%); }
+.kpi-rojo  { background: linear-gradient(135deg,#b91c1c 0%,#ef4444 100%); }
+.kpi-ambar { background: linear-gradient(135deg,#b45309 0%,#f59e0b 100%); }
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  right: -16px; top: -16px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.kpi-icon {
+  position: absolute;
+  top: 14px; right: 14px;
+  opacity: 0.4;
+}
+.kpi-number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+.kpi-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+.kpi-sub {
+  font-size: 0.62rem;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .analisis { padding: 0.6rem 0.75rem; }
+  .analisis-toolbar { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .view-toggle-group { flex: 1; }
+  .view-toggle-btn { flex: 1; justify-content: center; font-size: 0.72rem; padding: 0.35rem 0.5rem; }
+  .btn-seleccionar { font-size: 0.72rem; padding: 0.35rem 0.7rem; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .kpi-card { min-height: 88px; padding: 13px 14px 11px; border-radius: 12px; }
+  .kpi-number { font-size: 1.9rem; }
+  .kpi-label { font-size: 0.6rem; }
+  .kpi-sub { font-size: 0.58rem; }
+  .kpi-icon { display: none; }
+
+  .dashboard-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 12px; }
+  .dashboard-card { padding: 14px 14px; }
+
+  .piso-summary { margin-bottom: 12px; }
+  .piso-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .piso-card-dash { padding: 10px 12px; }
+
+  .alerts-list { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .alert-card { padding: 8px 10px; }
+
+  .por-piso-section { padding: 0; }
+  .por-piso-content { flex-direction: column; gap: 12px; }
+  .por-piso-chart { padding: 14px; }
+  .por-piso-rooms-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+
+  .timeline-card { padding: 12px 14px; }
+  .timeline-grid { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .timeline-state { font-size: 0.55rem; }
+}
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .kpi-card { min-height: 76px; padding: 11px 12px 9px; }
+  .kpi-number { font-size: 1.6rem; }
+  .piso-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .alerts-list { grid-template-columns: 1fr; }
+  .timeline-grid { gap: 2px; }
+  .por-piso-rooms-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 </style>

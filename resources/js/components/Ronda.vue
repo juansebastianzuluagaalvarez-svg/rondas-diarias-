@@ -1,32 +1,33 @@
 <template>
   <div>
-    <div class="stats-bar">
-      <div :class="['stat-card', filtroActivo === 'all' ? 'stat-active' : '']" data-filtro="all" @click="$emit('update:filtroActivo', 'all')">
-        <div class="num" style="color: var(--azul);">{{ stats.total }}</div>
-        <div class="lbl">Total</div>
-      </div>
-      <div :class="['stat-card', 'stat-verde', filtroActivo === 'funciona' ? 'stat-active' : '']" @click="$emit('update:filtroActivo', 'funciona')">
-        <div class="num">{{ stats.funciona }}</div>
-        <div class="lbl">Funcionan</div>
-      </div>
-      <div :class="['stat-card', 'stat-amarillo', filtroActivo === 'aislado' ? 'stat-active' : '']" @click="$emit('update:filtroActivo', 'aislado')">
-        <div class="num">{{ stats.aislado }}</div>
-        <div class="lbl">Aislados</div>
-      </div>
-      <div :class="['stat-card', 'stat-rojo', filtroActivo === 'no-funciona' ? 'stat-active' : '']" @click="$emit('update:filtroActivo', 'no-funciona')">
-        <div class="num">{{ stats.noFunciona }}</div>
-        <div class="lbl">No Funcionan</div>
-      </div>
-      <div :class="['stat-card', 'stat-gris', filtroActivo === 'no-hay' ? 'stat-active' : '']" @click="$emit('update:filtroActivo', 'no-hay')">
-        <div class="num">{{ stats.noHay }}</div>
-        <div class="lbl">Sin Llamado</div>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-track">
-          <div class="progress-fill" :style="{ width: stats.porcentajeRevisados + '%' }"></div>
+    <div class="ronda-kpi-bar">
+      <button :class="['rk-card', 'rk-azul', filtroActivo === 'all' ? 'rk-active' : '']" @click="$emit('update:filtroActivo', 'all')">
+        <div class="rk-num">{{ stats.total }}</div>
+        <div class="rk-lbl">Total</div>
+        <div class="rk-progress">
+          <div class="rkp-head">
+            <span class="rkp-pct">{{ stats.porcentajeRevisados }}%</span>
+            <span class="rkp-sub">{{ stats.revisados }}/{{ stats.total }}</span>
+          </div>
+          <div class="rkp-track"><div class="rkp-fill" :style="{ width: stats.porcentajeRevisados + '%' }"></div></div>
         </div>
-        <div class="progress-label">{{ stats.porcentajeRevisados }}% ({{ stats.revisados }}/{{ stats.total }})</div>
-      </div>
+      </button>
+      <button :class="['rk-card', 'rk-verde', filtroActivo === 'funciona' ? 'rk-active' : '']" @click="$emit('update:filtroActivo', 'funciona')">
+        <div class="rk-num">{{ stats.funciona }}</div>
+        <div class="rk-lbl">Funcionan</div>
+      </button>
+      <button :class="['rk-card', 'rk-ambar', filtroActivo === 'aislado' ? 'rk-active' : '']" @click="$emit('update:filtroActivo', 'aislado')">
+        <div class="rk-num">{{ stats.aislado }}</div>
+        <div class="rk-lbl">Aislados</div>
+      </button>
+      <button :class="['rk-card', 'rk-rojo', filtroActivo === 'no-funciona' ? 'rk-active' : '']" @click="$emit('update:filtroActivo', 'no-funciona')">
+        <div class="rk-num">{{ stats.noFunciona }}</div>
+        <div class="rk-lbl">No Funcionan</div>
+      </button>
+      <button :class="['rk-card', 'rk-gris', filtroActivo === 'no-hay' ? 'rk-active' : '']" @click="$emit('update:filtroActivo', 'no-hay')">
+        <div class="rk-num">{{ stats.noHay }}</div>
+        <div class="rk-lbl">Sin Llamado</div>
+      </button>
     </div>
 
     <div class="content">
@@ -408,3 +409,116 @@ const reabrirRonda = async () => {
   }
 }
 </script>
+
+<style scoped>
+.ronda-kpi-bar {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px 16px;
+  flex-wrap: wrap;
+}
+
+.rk-card {
+  flex: 1 1 0;
+  min-width: 100px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.18s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+}
+.rk-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+  background: currentColor;
+  opacity: 0.18;
+  transition: opacity 0.18s;
+}
+.rk-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.rk-card:hover::before { opacity: 0.35; }
+
+.rk-azul  { color: #0D2D6B; }
+.rk-verde { color: #15803d; }
+.rk-ambar { color: #b45309; }
+.rk-rojo  { color: #b91c1c; }
+.rk-gris  { color: #64748b; }
+
+.rk-active.rk-azul  { background: linear-gradient(135deg,#0D2D6B 0%,#1e4da0 100%); color: #fff; border-color: #0D2D6B; box-shadow: 0 4px 20px rgba(13,45,107,0.35); }
+.rk-active.rk-verde { background: linear-gradient(135deg,#15803d 0%,#22c55e 100%); color: #fff; border-color: #15803d; box-shadow: 0 4px 20px rgba(21,128,61,0.35); }
+.rk-active.rk-ambar { background: linear-gradient(135deg,#b45309 0%,#f59e0b 100%); color: #fff; border-color: #b45309; box-shadow: 0 4px 20px rgba(180,83,9,0.35); }
+.rk-active.rk-rojo  { background: linear-gradient(135deg,#b91c1c 0%,#ef4444 100%); color: #fff; border-color: #b91c1c; box-shadow: 0 4px 20px rgba(185,28,28,0.35); }
+.rk-active.rk-gris  { background: linear-gradient(135deg,#475569 0%,#94a3b8 100%); color: #fff; border-color: #475569; box-shadow: 0 4px 20px rgba(71,85,105,0.35); }
+.rk-active::before  { opacity: 0; }
+
+.rk-num {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+.rk-lbl {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.rk-progress {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.rk-active .rk-progress { border-top-color: rgba(255,255,255,0.2); }
+.rkp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+.rkp-pct {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.rkp-sub {
+  font-size: 0.62rem;
+  opacity: 0.65;
+}
+.rkp-track {
+  height: 5px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.rk-active .rkp-track { background: rgba(255,255,255,0.2); }
+.rkp-fill {
+  height: 100%;
+  background: currentColor;
+  border-radius: 100px;
+  transition: width 0.5s ease;
+  opacity: 0.75;
+}
+.rk-active .rkp-fill { background: #fff; opacity: 0.9; }
+
+@media (max-width: 768px) {
+  .ronda-kpi-bar { padding: 0 12px 14px; gap: 8px; }
+  .rk-card { flex: 0 0 calc(33.33% - 6px); min-width: calc(33.33% - 6px); padding: 11px 12px 10px; border-radius: 12px; }
+  .rk-num { font-size: 1.6rem; }
+  .rk-lbl { font-size: 0.58rem; }
+}
+@media (max-width: 480px) {
+  .rk-card { flex: 0 0 calc(50% - 4px); min-width: calc(50% - 4px); padding: 10px 11px 9px; }
+  .rk-num { font-size: 1.4rem; }
+  .ronda-kpi-bar { padding: 0 10px 12px; gap: 6px; }
+}
+</style>

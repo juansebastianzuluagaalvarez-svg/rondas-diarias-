@@ -363,6 +363,12 @@ document.addEventListener('mousemove', (e) => {
   gap: 14px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-top: 3px solid #0D2D6B;
+  border-radius: 14px;
+  padding: 14px 20px;
+  box-shadow: 0 2px 12px rgba(13,45,107,0.06);
   animation: f 0.4s 0.08s ease backwards;
 }
 .mc-chips {
@@ -628,4 +634,25 @@ document.addEventListener('mousemove', (e) => {
   50% { opacity: 0.3; }
 }
 @keyframes tipPop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+@media (max-width: 768px) {
+  .mc-wrap { padding: 10px 12px; }
+  .mc-hero { margin-bottom: 10px; }
+  .mc-hero-title { font-size: 1.1rem; }
+  .mc-hero-desc { font-size: 0.72rem; }
+  .mc-kpis { gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .mc-kpi { min-width: calc(50% - 4px); flex: 1 0 calc(50% - 4px); padding: 10px 12px; border-radius: 12px; }
+  .mc-kpi-num { font-size: 1.3rem; }
+  .mc-kpi-label { font-size: 0.58rem; }
+  .mc-filters { padding: 10px 14px; gap: 8px; }
+  .mc-chips { flex-wrap: wrap; gap: 4px; }
+  .mc-legend { margin-left: 0; order: 10; width: 100%; justify-content: center; }
+  .mc-heatmap-card { margin-bottom: 12px; }
+  .mc-heatmap th, .mc-heatmap td { padding: 4px 3px; font-size: 0.6rem; }
+}
+@media (max-width: 480px) {
+  .mc-kpi-num { font-size: 1.1rem; }
+  .mc-kpi { padding: 8px 10px; }
+  .mc-hm-piso { font-size: 0.58rem; }
+}
 </style>
